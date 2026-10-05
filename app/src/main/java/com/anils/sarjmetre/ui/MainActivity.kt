@@ -9,21 +9,31 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.anils.sarjmetre.MeterEngine
+import com.anils.sarjmetre.R
 import com.anils.sarjmetre.service.MeterService
-
-private enum class Screen { Main, Settings }
+import com.anils.sarjmetre.ui.glass.GlassTab
+import com.anils.sarjmetre.ui.glass.GlassTabBar
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 class MainActivity : ComponentActivity() {
     // The meter runs either way; without this permission its notification is just hidden.
@@ -37,35 +47,63 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null && engine.settings.serviceEnabled) startMeter()
         setContent {
             SarjMetreTheme {
-                var screen by rememberSaveable { mutableStateOf(Screen.Main) }
-                // The dial's self-test sweep plays once per launch, not on every return from settings.
-                var dialSwept by rememberSaveable { mutableStateOf(false) }
-                BackHandler(enabled = screen == Screen.Settings) { screen = Screen.Main }
-                AnimatedContent(
-                    targetState = screen,
-                    transitionSpec = {
-                        val forward = targetState == Screen.Settings
-                        (slideInHorizontally { if (forward) it else -it / 4 } + fadeIn()) togetherWith
-                            (slideOutHorizontally { if (forward) -it / 4 else it } + fadeOut())
-                    },
-                    label = "screen",
-                ) { current ->
-                    when (current) {
-                        Screen.Main -> MainScreen(
-                            dialSwept = dialSwept,
-                            onDialSwept = { dialSwept = true },
-                            onStart = {
-                                engine.settings.serviceEnabled = true
-                                startMeter()
-                            },
-                            onOpenSettings = { screen = Screen.Settings },
-                        )
-                        Screen.Settings -> SettingsScreen(
-                            engine = engine,
-                            onBack = { screen = Screen.Main },
-                            onStart = { startMeter() },
-                            onStop = { MeterService.stop(this@MainActivity) },
-                        )
+                val colors = LocalAppleColors.current
+                val reduceTransparency = rememberReduceTransparency()
+                // Everything in the content layer is captured here so the glass tab bar can refract it.
+                val backdrop = rememberLayerBackdrop()
+                var tab by rememberSaveable { mutableIntStateOf(0) }
+                val meterScroll = rememberScrollState()
+                val settingsScroll = rememberScrollState()
+                BackHandler(enabled = tab != 0) { tab = 0 }
+
+                Box(Modifier.fillMaxSize()) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .layerBackdrop(backdrop),
+                    ) {
+                        when (tab) {
+                            0 -> MeterScreen(
+                                scrollState = meterScroll,
+                                intervalMs = engine.settings.intervalMs,
+                                onStart = {
+                                    engine.settings.serviceEnabled = true
+                                    startMeter()
+                                },
+                            )
+                            else -> SettingsScreen(
+                                engine = engine,
+                                scrollState = settingsScroll,
+                                reduceTransparency = reduceTransparency,
+                                onStart = { startMeter() },
+                                onStop = { MeterService.stop(this@MainActivity) },
+                            )
+                        }
+                    }
+
+                    GlassTabBar(
+                        selectedTabIndex = { tab },
+                        onTabSelected = { tab = it },
+                        backdrop = backdrop,
+                        tabsCount = 2,
+                        accentColor = colors.green,
+                        containerColor = colors.glassSurface,
+                        selectionColor = colors.label.copy(alpha = 0.1f),
+                        reduceTransparency = reduceTransparency,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(bottom = 12.dp)
+                            .width(216.dp),
+                    ) {
+                        GlassTab(selected = tab == 0, onClick = { tab = 0 }) {
+                            Icon(painterResource(R.drawable.ic_bolt_fill), contentDescription = null, tint = colors.label, modifier = Modifier.size(24.dp))
+                            Text("Şarj", style = AppleType.tabLabel, color = colors.label)
+                        }
+                        GlassTab(selected = tab == 1, onClick = { tab = 1 }) {
+                            Icon(painterResource(R.drawable.ic_gear_fill), contentDescription = null, tint = colors.label, modifier = Modifier.size(24.dp))
+                            Text("Ayarlar", style = AppleType.tabLabel, color = colors.label)
+                        }
                     }
                 }
             }

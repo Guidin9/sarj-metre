@@ -23,8 +23,23 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Telefonda: bildirim iznini ver, uygulamanın pil kullanımını **Kısıtlanmamış** yap. Samsung'da ayrıca Pil → Arka plan kullanım sınırları → **Hiç uyumayan uygulamalar** listesine ekle.
 
+## Arayüz
+
+Arayüz, Apple'ın WWDC25'te tanıttığı Liquid Glass tasarım diline göre yapıldı:
+
+- İçerik opak katmanda kalır. Liquid Glass yalnızca üstte yüzen sekme çubuğunda kullanılır; anahtarlar ise sadece dokunulduğu anda cama dönüşür.
+- Seçili sekmenin rengi dışında renklendirme yoktur ve cam üst üste binmez.
+- Köşeler sürekli eğrilidir, kontroller kapsül şeklindedir.
+- Kaydırma kenarı efekti vardır. Büyük başlık kaydırınca küçülür. Bölümler gruplanmış listelerde durur.
+- Renkler iOS sistem renkleridir.
+- Samsung'un "şeffaflığı azalt" ayarı açıksa cam daha mat hale gelir.
+
 ## Teknik
 
 Kotlin, Jetpack Compose, minSdk 26. Ön plan servisi (`specialUse`), `BatteryManager` özellikleri ve `ACTION_BATTERY_CHANGED` yayınıyla çalışır; root gerekmez.
 
-Barlow yazı tipi SIL Open Font License ile dağıtılır (`third_party/fonts/OFL.txt`).
+## Üçüncü taraf
+
+- Cam efekti: [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) (`backdrop`, `shapes`), Apache License 2.0. `ui/glass` altındaki sekme çubuğu, anahtar ve etkileşim yardımcıları bu projenin örnek uygulamasından uyarlandı (`third_party/AndroidLiquidGlass/LICENSE`).
+- Yazı tipi: Inter, SIL Open Font License (`third_party/fonts/OFL.txt`). Apple'ın SF Pro fontu yalnızca Apple platformları için lisanslı olduğu için kullanılmadı.
+- İkonlar: Material Symbols Rounded, Apache License 2.0.

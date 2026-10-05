@@ -1,5 +1,6 @@
 <resources>
-    <color name="brand">#2350D1</color>
-    <color name="ic_launcher_background">#2350D1</color>
-    <color name="window_background">#EEF1F4</color>
+    <!-- iOS systemGreen: the app's tint, as on the battery itself -->
+    <color name="brand">#34C759</color>
+    <!-- iOS systemGroupedBackground -->
+    <color name="window_background">#F2F2F7</color>
 </resources>

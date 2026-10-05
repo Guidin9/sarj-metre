@@ -3,31 +3,26 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- The app's center-zero ammeter in miniature: dial arc ±60° around the pivot at (54,68) -->
+    <!-- Flat layered shapes, as Apple's icon guidance asks: a Batteries-widget ring with a bolt. -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M28.02,53 A30,30 0 0,1 79.98,53"
-        android:strokeWidth="5.5"
-        android:strokeAlpha="0.55"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
-    <!-- Zero mark -->
+        android:pathData="M54,33 a21,21 0 1,1 0,42 a21,21 0 1,1 0,-42"
+        android:strokeWidth="7"
+        android:strokeAlpha="0.35"
+        android:strokeColor="#FFFFFF" />
     <path
         android:fillColor="#00000000"
-        android:pathData="M54,38 L54,45"
-        android:strokeWidth="3.5"
-        android:strokeAlpha="0.55"
+        android:pathData="M54,33 A21,21 0 1,1 33,54"
+        android:strokeWidth="7"
         android:strokeColor="#FFFFFF"
         android:strokeLineCap="round" />
-    <!-- Needle swung to the charging side -->
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M54,68 L68.34,47.52"
-        android:strokeWidth="5"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
-    <!-- Pivot -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M48.5,68 a5.5,5.5 0 1,0 11,0 a5.5,5.5 0 1,0 -11,0" />
+    <group
+        android:scaleX="0.95"
+        android:scaleY="0.95"
+        android:translateX="42.6"
+        android:translateY="42.6">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M13,2L3,14h8l-1,8L21,10h-8z" />
+    </group>
 </vector>

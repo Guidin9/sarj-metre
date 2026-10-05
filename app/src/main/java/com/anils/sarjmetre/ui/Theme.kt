@@ -1,9 +1,7 @@
 package com.anils.sarjmetre.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -11,155 +9,120 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.anils.sarjmetre.R
 
-/** Palette taken from the cell itself: cobalt (the cathode) for current flowing in, amber for current drawn out. */
+/** iOS semantic system colors, so the app reads like one of Apple's own. */
 @Immutable
-data class MeterColors(
-    val background: Color,
-    val face: Color,
-    val ink: Color,
-    val inkMuted: Color,
-    val hairline: Color,
-    val outline: Color,
-    val charge: Color,
-    val chargeSoft: Color,
-    val drain: Color,
-    val drainText: Color,
-    val drainSoft: Color,
+data class AppleColors(
+    val isDark: Boolean,
+    val groupedBackground: Color,
+    val cell: Color,
+    val label: Color,
+    val secondaryLabel: Color,
+    val tertiaryLabel: Color,
+    val separator: Color,
+    val fill: Color,
+    val segmentThumb: Color,
+    val glassSurface: Color,
+    val green: Color,
+    val orange: Color,
+    val red: Color,
+    val blue: Color,
 )
 
-private val LightColors = MeterColors(
-    background = Color(0xFFEEF1F4),
-    face = Color(0xFFFAFBFC),
-    ink = Color(0xFF18202A),
-    inkMuted = Color(0xFF5E6B78),
-    hairline = Color(0xFFD5DBE2),
-    outline = Color(0xFFAEB8C3),
-    charge = Color(0xFF2350D1),
-    chargeSoft = Color(0xFFDCE5FB),
-    drain = Color(0xFFE08A00),
-    drainText = Color(0xFF9A5B00),
-    drainSoft = Color(0xFFF8E7CC),
+private val LightApple = AppleColors(
+    isDark = false,
+    groupedBackground = Color(0xFFF2F2F7),
+    cell = Color(0xFFFFFFFF),
+    label = Color(0xFF000000),
+    secondaryLabel = Color(0x993C3C43),
+    tertiaryLabel = Color(0x4D3C3C43),
+    separator = Color(0x4A3C3C43),
+    fill = Color(0x1F767680),
+    segmentThumb = Color(0xFFFFFFFF),
+    glassSurface = Color(0x66FAFAFA),
+    green = Color(0xFF34C759),
+    orange = Color(0xFFFF9500),
+    red = Color(0xFFFF3B30),
+    blue = Color(0xFF007AFF),
 )
 
-private val DarkColors = MeterColors(
-    background = Color(0xFF151E2A),
-    face = Color(0xFF1C2734),
-    ink = Color(0xFFE7EDF3),
-    inkMuted = Color(0xFF93A1B0),
-    hairline = Color(0xFF2C3947),
-    outline = Color(0xFF46556A),
-    charge = Color(0xFF86A8FF),
-    chargeSoft = Color(0xFF24365C),
-    drain = Color(0xFFFFB547),
-    drainText = Color(0xFFFFB547),
-    drainSoft = Color(0xFF3F321C),
+private val DarkApple = AppleColors(
+    isDark = true,
+    groupedBackground = Color(0xFF000000),
+    cell = Color(0xFF1C1C1E),
+    label = Color(0xFFFFFFFF),
+    secondaryLabel = Color(0x99EBEBF5),
+    tertiaryLabel = Color(0x4DEBEBF5),
+    separator = Color(0x99545458),
+    fill = Color(0x3D767680),
+    segmentThumb = Color(0xFF636366),
+    glassSurface = Color(0x66121212),
+    green = Color(0xFF30D158),
+    orange = Color(0xFFFF9F0A),
+    red = Color(0xFFFF453A),
+    blue = Color(0xFF0A84FF),
 )
 
-val LocalMeterColors = staticCompositionLocalOf { LightColors }
+val LocalAppleColors = staticCompositionLocalOf { LightApple }
 
-/** Barlow: a DIN-lineage grotesk from road and rail signage, at home on an instrument face. */
-val Barlow = FontFamily(
-    Font(R.font.barlow_regular, FontWeight.Normal),
-    Font(R.font.barlow_medium, FontWeight.Medium),
-    Font(R.font.barlow_semibold, FontWeight.SemiBold),
+// SF Pro is licensed for Apple platforms only; Inter is the closest open equivalent.
+// Its optical-size axis gives a text cut for body sizes and a display cut for large titles, like SF Text/Display.
+@OptIn(ExperimentalTextApi::class)
+private fun inter(weight: Int, opticalSize: Float) = Font(
+    R.font.inter,
+    FontWeight(weight),
+    variationSettings = FontVariation.Settings(
+        FontVariation.weight(weight),
+        FontVariation.Setting("opsz", opticalSize),
+    ),
 )
 
-/** The semi-condensed cut keeps long readings large. */
-val BarlowSemiCondensed = FontFamily(
-    Font(R.font.barlow_semicondensed_medium, FontWeight.Medium),
-    Font(R.font.barlow_semicondensed_semibold, FontWeight.SemiBold),
-)
+val InterText = FontFamily(inter(400, 16f), inter(500, 16f), inter(600, 16f), inter(700, 16f))
+val InterDisplay = FontFamily(inter(400, 32f), inter(500, 32f), inter(600, 32f), inter(700, 32f))
 
-/** Figure styles on a classic 12-14-16-18-21-24-36-60 scale; tabular digits stop live numbers from jittering. */
-object MeterType {
-    val hero = TextStyle(
-        fontFamily = BarlowSemiCondensed,
+/** The iOS Dynamic Type default sizes, with Inter's tracking pulled in to sit closer to SF. */
+object AppleType {
+    val largeTitle = TextStyle(fontFamily = InterDisplay, fontWeight = FontWeight.Bold, fontSize = 34.sp, lineHeight = 41.sp, letterSpacing = (-0.6).sp)
+    val title3 = TextStyle(fontFamily = InterDisplay, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 25.sp, letterSpacing = (-0.3).sp)
+    val headline = TextStyle(fontFamily = InterText, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.3).sp)
+    val body = TextStyle(fontFamily = InterText, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.3).sp)
+    val subheadline = TextStyle(fontFamily = InterText, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = (-0.2).sp)
+    val footnote = TextStyle(fontFamily = InterText, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 18.sp, letterSpacing = (-0.1).sp)
+    val caption2 = TextStyle(fontFamily = InterText, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 13.sp)
+    val tabLabel = TextStyle(fontFamily = InterText, fontWeight = FontWeight.SemiBold, fontSize = 10.sp, lineHeight = 12.sp)
+
+    /** The live reading in the battery ring; tabular digits keep it from jittering every second. */
+    val heroNumber = TextStyle(
+        fontFamily = InterDisplay,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 60.sp,
-        lineHeight = 64.sp,
-        letterSpacing = (-0.5).sp,
+        fontSize = 46.sp,
+        lineHeight = 50.sp,
+        letterSpacing = (-1.0).sp,
         fontFeatureSettings = "tnum",
     )
-    val heroUnit = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 21.sp)
-    val figureLarge = TextStyle(
-        fontFamily = BarlowSemiCondensed,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 36.sp,
-        lineHeight = 40.sp,
-        fontFeatureSettings = "tnum",
-    )
-    val figure = TextStyle(
-        fontFamily = BarlowSemiCondensed,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        lineHeight = 28.sp,
-        fontFeatureSettings = "tnum",
-    )
-    val unit = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-    val dialNumber = TextStyle(
-        fontFamily = BarlowSemiCondensed,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        fontFeatureSettings = "tnum",
-    )
-    val dialWord = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+    val figures = TextStyle(fontFeatureSettings = "tnum")
 }
-
-private val AppTypography = Typography().run {
-    Typography(
-        displayLarge = displayLarge.copy(fontFamily = BarlowSemiCondensed),
-        displayMedium = displayMedium.copy(fontFamily = BarlowSemiCondensed),
-        displaySmall = displaySmall.copy(fontFamily = BarlowSemiCondensed),
-        headlineLarge = headlineLarge.copy(fontFamily = Barlow),
-        headlineMedium = headlineMedium.copy(fontFamily = Barlow),
-        headlineSmall = headlineSmall.copy(fontFamily = Barlow),
-        titleLarge = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.SemiBold, fontSize = 21.sp, lineHeight = 28.sp),
-        titleMedium = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, lineHeight = 24.sp),
-        titleSmall = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 22.sp),
-        bodyLarge = TextStyle(fontFamily = Barlow, fontSize = 16.sp, lineHeight = 22.sp),
-        bodyMedium = TextStyle(fontFamily = Barlow, fontSize = 14.sp, lineHeight = 20.sp),
-        bodySmall = TextStyle(fontFamily = Barlow, fontSize = 12.sp, lineHeight = 16.sp),
-        labelLarge = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 20.sp),
-        labelMedium = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 18.sp),
-        labelSmall = TextStyle(fontFamily = Barlow, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
-    )
-}
-
-private fun materialScheme(c: MeterColors, dark: Boolean): ColorScheme =
-    (if (dark) darkColorScheme() else lightColorScheme()).copy(
-        primary = c.charge,
-        onPrimary = if (dark) Color(0xFF0B1B3D) else Color.White,
-        primaryContainer = c.chargeSoft,
-        onPrimaryContainer = c.ink,
-        secondaryContainer = c.chargeSoft,
-        onSecondaryContainer = c.ink,
-        background = c.background,
-        onBackground = c.ink,
-        surface = c.background,
-        onSurface = c.ink,
-        surfaceVariant = c.face,
-        onSurfaceVariant = c.inkMuted,
-        surfaceContainerLowest = c.face,
-        surfaceContainerLow = c.face,
-        surfaceContainer = c.face,
-        surfaceContainerHigh = c.face,
-        surfaceContainerHighest = c.face,
-        outline = c.outline,
-        outlineVariant = c.hairline,
-    )
 
 @Composable
 fun SarjMetreTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val colors = if (dark) DarkColors else LightColors
-    CompositionLocalProvider(LocalMeterColors provides colors) {
-        MaterialTheme(colorScheme = materialScheme(colors, dark), typography = AppTypography, content = content)
+    val colors = if (isSystemInDarkTheme()) DarkApple else LightApple
+    // Material components (text field cursor, ripples) only pick up the tint and surfaces.
+    val scheme = (if (colors.isDark) darkColorScheme() else lightColorScheme()).copy(
+        primary = colors.green,
+        background = colors.groupedBackground,
+        surface = colors.cell,
+        onSurface = colors.label,
+        onBackground = colors.label,
+    )
+    CompositionLocalProvider(LocalAppleColors provides colors) {
+        MaterialTheme(colorScheme = scheme, content = content)
     }
 }

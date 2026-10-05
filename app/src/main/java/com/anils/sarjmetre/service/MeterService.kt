@@ -134,7 +134,7 @@ class MeterService : Service() {
         if (ticker?.isActive == true) return
         ticker = scope.launch {
             while (isActive) {
-                update()
+                update().currentMa?.let(LiveState::appendSample)
                 delay(engine.settings.intervalMs)
             }
         }
@@ -145,11 +145,12 @@ class MeterService : Service() {
         ticker = null
     }
 
-    private fun update() {
+    private fun update(): MeterState {
         val state = engine.sample(batteryIntent)
         LiveState.publish(state)
         if (screenOn) post(state)
         if (updates++ % LOG_EVERY == 0) log(state)
+        return state
     }
 
     private fun post(state: MeterState) {
