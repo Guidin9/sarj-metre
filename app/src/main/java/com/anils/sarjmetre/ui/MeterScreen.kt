@@ -47,7 +47,7 @@ fun MeterScreen(scrollState: ScrollState, intervalMs: Long, onStart: () -> Unit)
         onPauseOrDispose {}
     }
 
-    LargeTitlePage(title = "Şarj Metre", scrollState = scrollState) {
+    LargeTitlePage(title = "Batarya", scrollState = scrollState) {
         if (!running || !notificationsOn || !batteryExempt) {
             InsetGroup(modifier = Modifier.padding(bottom = 4.dp)) {
                 var first = true

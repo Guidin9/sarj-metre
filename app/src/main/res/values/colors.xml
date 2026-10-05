@@ -1,6 +1,8 @@
 <resources>
     <!-- iOS systemGreen: the app's tint, as on the battery itself -->
     <color name="brand">#34C759</color>
+    <!-- iOS systemGray5 (dark): the colorized battery notification's card, close to a plain dark card -->
+    <color name="notification_card">#2C2C2E</color>
     <!-- iOS systemGroupedBackground -->
     <color name="window_background">#F2F2F7</color>
 </resources>

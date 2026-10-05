@@ -8,6 +8,7 @@ import com.anils.sarjmetre.battery.CapacityResolver
 import com.anils.sarjmetre.battery.ChargeMath
 import com.anils.sarjmetre.battery.CurrentHistory
 import com.anils.sarjmetre.battery.CurrentNormalizer
+import com.anils.sarjmetre.net.NetMeter
 import com.anils.sarjmetre.settings.AppSettings
 import com.anils.sarjmetre.settings.SignMode
 import com.anils.sarjmetre.settings.UnitMode
@@ -16,9 +17,13 @@ import com.anils.sarjmetre.stats.PrefsDailyTotalsStore
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
-/** Turns raw battery readings into [MeterState]. One per process, used from the main thread only. */
+/**
+ * Turns raw battery readings into [MeterState] and holds the network meter. One per process,
+ * used from the main thread only.
+ */
 class MeterEngine private constructor(context: Context) {
     val settings = AppSettings(context)
+    val net = NetMeter(context)
     private val reader = BatteryReader(context)
     private val normalizer = CurrentNormalizer(settings)
     private val history = CurrentHistory()

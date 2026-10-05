@@ -1,6 +1,6 @@
-# Şarj Metre
+# Live Meter
 
-Telefonun bataryasına anlık olarak giren ya da çıkan akımı (mA), Internet Speed Meter'ın hızı gösterdiği gibi **status bar'da** gösteren Android uygulaması.
+Telefonun bataryasına anlık olarak giren ya da çıkan akımı (mA) ve ağ hızını, Internet Speed Meter'ın yaptığı gibi **status bar'da** gösteren Android uygulaması. Uygulamanın Batarya, Ağ ve Ayarlar olmak üzere üç sekmesi var.
 
 ## Özellikler
 
@@ -10,6 +10,8 @@ Telefonun bataryasına anlık olarak giren ya da çıkan akımı (mA), Internet 
 - Akımın birimi (µA/mA) ve yönü cihaza göre otomatik tespit edilir.
 - Samsung'da kalan süre, kilit ekranındaki tahminle aynıdır. Pil koruma (%80/85/…) sınırı ayarlanabilir.
 - Ekran kapalıyken güncelleme durur; telefon açılınca gösterge kendiliğinden başlar.
+- Status bar'da ikinci ikon olarak ağ hızı (indirme + yükleme toplamı). Bildirimde indirme ve yükleme ayrı ayrı, bugünkü mobil ve Wi-Fi kullanımıyla birlikte.
+- Ağ ekranı: bugün saat saat, son 7 gün ve bu ay gün gün mobil / Wi-Fi kullanımı. Veri sistemin kendi kaydından gelir (Samsung'un veri kullanımı ekranı da bunu okur), bu yüzden kurulumdan önceki günler de görünür ve VPN trafiği iki kez sayılmaz. Bunun için bir kez **Kullanım verisi erişimi** izni gerekir.
 - Pil dostu: ikon yalnızca akım en az 10 mA değişince yeniden çizilir; telefon ısınınca (termal durum "orta" ve üstü) yenileme 5 saniyeye yavaşlar.
 
 ## Derleme

@@ -1,5 +1,6 @@
 package com.anils.sarjmetre
 
+import com.anils.sarjmetre.net.NetState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,14 @@ object LiveState {
     private val _history = MutableStateFlow<List<Int>>(emptyList())
     val history: StateFlow<List<Int>> = _history.asStateFlow()
 
+    /** Null while the network meter is off. */
+    private val _net = MutableStateFlow<NetState?>(null)
+    val net: StateFlow<NetState?> = _net.asStateFlow()
+
+    fun publishNet(state: NetState?) {
+        _net.value = state
+    }
+
     fun publish(state: MeterState) {
         _state.value = state
     }
@@ -32,6 +41,7 @@ object LiveState {
         if (!running) {
             _state.value = null
             _history.value = emptyList()
+            _net.value = null
         }
     }
 }

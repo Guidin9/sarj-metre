@@ -20,8 +20,10 @@ import com.anils.sarjmetre.BuildConfig
 import com.anils.sarjmetre.LiveState
 import com.anils.sarjmetre.MeterEngine
 import com.anils.sarjmetre.MeterState
+import com.anils.sarjmetre.net.NetText
 import com.anils.sarjmetre.notification.MeterNotification
 import com.anils.sarjmetre.notification.MeterText
+import com.anils.sarjmetre.notification.NetNotification
 import com.anils.sarjmetre.notification.PostGate
 import com.anils.sarjmetre.notification.StatusIconRenderer
 import kotlinx.coroutines.CoroutineScope
@@ -32,12 +34,14 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
 /**
  * Keeps the live meter in the status bar. Samples on a timer while the screen is on; with the
  * screen off it only listens to battery broadcasts, so today's totals keep counting for free.
  * The timer slows down while the phone is warm, and the icon is only redrawn when it would change.
+ * When enabled, the same timer drives a second icon with the network speed.
  */
 class MeterService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -47,7 +51,10 @@ class MeterService : Service() {
     private lateinit var notification: MeterNotification
     private lateinit var renderer: StatusIconRenderer
     private lateinit var power: PowerManager
+    private lateinit var netNotification: NetNotification
     private val gate = PostGate(Pacing.ICON_THRESHOLD_MA, Pacing.TEXT_EVERY_MS)
+    private val netGate = PostGate(thresholdMa = 0, textEveryMs = Pacing.TEXT_EVERY_MS)
+    private var netActive = false
     private var batteryIntent: Intent? = null
     private var receiversRegistered = false
     private var screenOn = true
@@ -74,6 +81,7 @@ class MeterService : Service() {
                 stopTicker()
                 // Nothing updates while the screen is off, so don't leave a stale number on the lock screen or AOD.
                 postStatic()
+                pauseNet()
             }
         }
     }
@@ -83,6 +91,7 @@ class MeterService : Service() {
         engine = MeterEngine.get(this)
         notifications = getSystemService(NotificationManager::class.java)
         notification = MeterNotification(this)
+        netNotification = NetNotification(this)
         renderer = StatusIconRenderer((ICON_DP * resources.displayMetrics.density).roundToInt())
         power = getSystemService(PowerManager::class.java)
         if (!enterForeground()) return
@@ -114,6 +123,7 @@ class MeterService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        if (netActive) notifications.cancel(NetNotification.ID)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             (thermalListener as? PowerManager.OnThermalStatusChangedListener)?.let(power::removeThermalStatusListener)
         }
@@ -150,6 +160,7 @@ class MeterService : Service() {
         if (ticker?.isActive == true) return
         ticker = scope.launch {
             while (isActive) {
+                updateNet()
                 update().currentMa?.let(LiveState::appendSample)
                 delay(Pacing.intervalMs(engine.settings.intervalMs, thermalStatus))
             }
@@ -191,6 +202,46 @@ class MeterService : Service() {
         gate.reset()
         val content = LiveState.state.value?.let { MeterText.content(it, engine.settings.iconMode) }
         notifications.notify(MeterNotification.ID, notification.build(notification.staticIcon, content))
+    }
+
+    private fun updateNet() {
+        if (!engine.settings.netMeterEnabled) {
+            if (netActive) stopNet()
+            return
+        }
+        val state = engine.net.sample() ?: return
+        netActive = true
+        if (engine.net.todayDue()) refreshNetToday()
+        LiveState.publishNet(state)
+        val content = NetText.content(state)
+        if (!netGate.shouldPost(content, SystemClock.elapsedRealtime())) return
+        val icon = Icon.createWithBitmap(renderer.render(content.iconValue, content.iconUnit))
+        notifications.notify(NetNotification.ID, netNotification.build(icon, content))
+    }
+
+    /** Today's use is a query into the system's statistics, so it runs on a background thread. */
+    private fun refreshNetToday() {
+        engine.net.setToday(LiveState.net.value?.today) // Not due again while this one runs.
+        scope.launch {
+            val today = withContext(Dispatchers.IO) { engine.net.history.today() }
+            engine.net.setToday(today)
+        }
+    }
+
+    /** Screen off: the speed would only average over the gap later, so restart it and show a static icon. */
+    private fun pauseNet() {
+        engine.net.pause()
+        netGate.reset()
+        val state = LiveState.net.value ?: return
+        if (netActive) notifications.notify(NetNotification.ID, netNotification.build(netNotification.staticIcon, NetText.pausedContent(state)))
+    }
+
+    private fun stopNet() {
+        engine.net.pause()
+        netGate.reset()
+        netActive = false
+        notifications.cancel(NetNotification.ID)
+        LiveState.publishNet(null)
     }
 
     private fun Intent.plugged() = getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)

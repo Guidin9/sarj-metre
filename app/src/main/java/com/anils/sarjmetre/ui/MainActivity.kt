@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 val backdrop = rememberLayerBackdrop()
                 var tab by rememberSaveable { mutableIntStateOf(0) }
                 val meterScroll = rememberScrollState()
+                val netScroll = rememberScrollState()
                 val settingsScroll = rememberScrollState()
                 BackHandler(enabled = tab != 0) { tab = 0 }
 
@@ -71,6 +72,11 @@ class MainActivity : ComponentActivity() {
                                     startMeter()
                                 },
                             )
+                            1 -> NetScreen(
+                                scrollState = netScroll,
+                                history = engine.net.history,
+                                netEnabled = engine.settings.netMeterEnabled,
+                            )
                             else -> SettingsScreen(
                                 engine = engine,
                                 scrollState = settingsScroll,
@@ -85,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         selectedTabIndex = { tab },
                         onTabSelected = { tab = it },
                         backdrop = backdrop,
-                        tabsCount = 2,
+                        tabsCount = 3,
                         accentColor = colors.green,
                         containerColor = colors.glassSurface,
                         selectionColor = colors.label.copy(alpha = 0.1f),
@@ -94,13 +100,17 @@ class MainActivity : ComponentActivity() {
                             .align(Alignment.BottomCenter)
                             .navigationBarsPadding()
                             .padding(bottom = 12.dp)
-                            .width(216.dp),
+                            .width(300.dp),
                     ) {
                         GlassTab(selected = tab == 0, onClick = { tab = 0 }) {
                             Icon(painterResource(R.drawable.ic_bolt_fill), contentDescription = null, tint = colors.label, modifier = Modifier.size(24.dp))
-                            Text("Şarj", style = AppleType.tabLabel, color = colors.label)
+                            Text("Batarya", style = AppleType.tabLabel, color = colors.label)
                         }
                         GlassTab(selected = tab == 1, onClick = { tab = 1 }) {
+                            Icon(painterResource(R.drawable.ic_stat_net), contentDescription = null, tint = colors.label, modifier = Modifier.size(24.dp))
+                            Text("Ağ", style = AppleType.tabLabel, color = colors.label)
+                        }
+                        GlassTab(selected = tab == 2, onClick = { tab = 2 }) {
                             Icon(painterResource(R.drawable.ic_gear_fill), contentDescription = null, tint = colors.label, modifier = Modifier.size(24.dp))
                             Text("Ayarlar", style = AppleType.tabLabel, color = colors.label)
                         }

@@ -4,19 +4,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Graphite, lit from above like the face of an instrument. -->
     <path android:pathData="M0,0h108v108h-108z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:endX="54"
-                android:endY="108"
-                android:startX="54"
-                android:startY="0"
-                android:type="linear">
+                android:centerX="54"
+                android:centerY="34"
+                android:gradientRadius="80"
+                android:type="radial">
                 <item
-                    android:color="#FF5EE07E"
+                    android:color="#FF3A3A3E"
                     android:offset="0" />
                 <item
-                    android:color="#FF1FAE4B"
+                    android:color="#FF0A0A0C"
                     android:offset="1" />
             </gradient>
         </aapt:attr>

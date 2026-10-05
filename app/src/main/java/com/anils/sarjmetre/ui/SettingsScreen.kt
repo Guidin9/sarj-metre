@@ -58,6 +58,7 @@ fun SettingsScreen(
     var enabled by remember { mutableStateOf(settings.serviceEnabled) }
     // Picks up a stop from the notification's button.
     LaunchedEffect(running) { enabled = settings.serviceEnabled }
+    var netEnabled by remember { mutableStateOf(settings.netMeterEnabled) }
     var iconMode by remember { mutableStateOf(settings.iconMode) }
     var interval by remember { mutableLongStateOf(settings.intervalMs) }
     var target by remember { mutableIntStateOf(settings.targetLevel) }
@@ -114,6 +115,29 @@ fun SettingsScreen(
                     options = listOf(1000L to "1 sn", 2000L to "2 sn", 5000L to "5 sn"),
                     selected = interval,
                     onSelect = { interval = it; settings.intervalMs = it },
+                )
+            }
+        }
+
+        InsetGroup(
+            header = "Ağ hızı",
+            footer = "İndirme ve yüklemenin toplamı, mA göstergesiyle aynı sıklıkta güncellenir.",
+        ) {
+            ListRow {
+                Column(Modifier.weight(1f)) {
+                    Text("Ağ hızını göster", style = AppleType.body, color = colors.label)
+                    Text("İkinci status bar ikonu", style = AppleType.footnote, color = colors.secondaryLabel)
+                }
+                Spacer(Modifier.width(12.dp))
+                GlassToggle(
+                    checked = { netEnabled },
+                    onCheckedChange = { on ->
+                        netEnabled = on
+                        settings.netMeterEnabled = on
+                    },
+                    onColor = colors.green,
+                    offColor = colors.fill,
+                    reduceTransparency = reduceTransparency,
                 )
             }
         }

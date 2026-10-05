@@ -20,7 +20,11 @@ class MeterNotification(context: Context) {
     val staticIcon: Icon = Icon.createWithResource(context, R.drawable.ic_stat_bolt)
     private val bigText = Notification.BigTextStyle()
     private val builder = Notification.Builder(context, CHANNEL_ID)
-        .setColor(context.getColor(R.color.brand))
+        // Android 16 bundles an app's notifications, and a bundle shows a single static icon in the
+        // status bar. A colorized foreground service notification is exempt, so this one and the
+        // network meter each keep their own live icon. Dark gray keeps the card close to a plain one.
+        .setColor(context.getColor(R.color.notification_card))
+        .setColorized(true)
         .setOngoing(true)
         .setOnlyAlertOnce(true)
         .setShowWhen(false)
@@ -54,9 +58,11 @@ class MeterNotification(context: Context) {
         }
 
     fun build(icon: Icon, content: MeterContent?): Notification {
-        builder.setSmallIcon(icon)
+        // The shade orders notifications of equal importance by this time, newest on top. A reused
+        // builder would keep the service's start time and sink below everything posted since.
+        builder.setWhen(System.currentTimeMillis()).setSmallIcon(icon)
         if (content == null) {
-            builder.setContentTitle("Şarj Metre").setContentText("Ölçüm başlıyor…").setStyle(null)
+            builder.setContentTitle("Live Meter").setContentText("Ölçüm başlıyor…").setStyle(null)
         } else {
             builder.setContentTitle(content.title)
                 .setContentText(content.today)

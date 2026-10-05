@@ -18,6 +18,11 @@ class AppSettings(context: Context) : DetectionStore {
         get() = prefs.getBoolean("service_enabled", true)
         set(value) = prefs.edit { putBoolean("service_enabled", value) }
 
+    /** Second status bar icon with the network speed. */
+    var netMeterEnabled: Boolean
+        get() = prefs.getBoolean("net_meter_enabled", true)
+        set(value) = prefs.edit { putBoolean("net_meter_enabled", value) }
+
     var iconMode: IconMode
         get() = enumOr(prefs.getString("icon_mode", null), IconMode.MILLIAMPS)
         set(value) = prefs.edit { putString("icon_mode", value.name) }

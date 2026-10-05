@@ -35,6 +35,8 @@ data class AppleColors(
     val orange: Color,
     val red: Color,
     val blue: Color,
+    /** Mobile data in the usage chart, next to [blue] for Wi-Fi; darker in dark mode so both stay distinct for color-blind eyes. */
+    val mobileData: Color,
 )
 
 private val LightApple = AppleColors(
@@ -52,6 +54,7 @@ private val LightApple = AppleColors(
     orange = Color(0xFFFF9500),
     red = Color(0xFFFF3B30),
     blue = Color(0xFF007AFF),
+    mobileData = Color(0xFF34C759),
 )
 
 private val DarkApple = AppleColors(
@@ -69,6 +72,7 @@ private val DarkApple = AppleColors(
     orange = Color(0xFFFF9F0A),
     red = Color(0xFFFF453A),
     blue = Color(0xFF0A84FF),
+    mobileData = Color(0xFF24A846),
 )
 
 val LocalAppleColors = staticCompositionLocalOf { LightApple }
