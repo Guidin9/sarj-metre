@@ -16,3 +16,8 @@ captures/
 # OS
 .DS_Store
 Thumbs.db
+
+# Release signing (key and passwords stay on this machine)
+*.jks
+*.keystore
+keystore.properties

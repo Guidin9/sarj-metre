@@ -8,18 +8,21 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.graphics.drawable.Icon
+import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.anils.sarjmetre.BuildConfig
 import com.anils.sarjmetre.LiveState
 import com.anils.sarjmetre.MeterEngine
 import com.anils.sarjmetre.MeterState
-import com.anils.sarjmetre.notification.MeterContent
 import com.anils.sarjmetre.notification.MeterNotification
 import com.anils.sarjmetre.notification.MeterText
+import com.anils.sarjmetre.notification.PostGate
 import com.anils.sarjmetre.notification.StatusIconRenderer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,23 +37,31 @@ import kotlin.math.roundToInt
 /**
  * Keeps the live meter in the status bar. Samples on a timer while the screen is on; with the
  * screen off it only listens to battery broadcasts, so today's totals keep counting for free.
+ * The timer slows down while the phone is warm, and the icon is only redrawn when it would change.
  */
 class MeterService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var ticker: Job? = null
     private lateinit var engine: MeterEngine
     private lateinit var notifications: NotificationManager
+    private lateinit var notification: MeterNotification
     private lateinit var renderer: StatusIconRenderer
+    private lateinit var power: PowerManager
+    private val gate = PostGate(Pacing.ICON_THRESHOLD_MA, Pacing.TEXT_EVERY_MS)
     private var batteryIntent: Intent? = null
     private var receiversRegistered = false
     private var screenOn = true
-    private var lastPosted: MeterContent? = null
+    private var thermalStatus = PowerManager.THERMAL_STATUS_NONE
+    private var thermalListener: Any? = null
     private var updates = 0
 
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            val old = batteryIntent
             batteryIntent = intent
-            update()
+            // With the screen off broadcasts are the only updates, and they keep today's totals counting.
+            val urgent = Pacing.isUrgent(old?.plugged(), old?.status(), intent.plugged(), intent.status())
+            if (ticker == null || urgent) update()
         }
     }
 
@@ -71,11 +82,14 @@ class MeterService : Service() {
         super.onCreate()
         engine = MeterEngine.get(this)
         notifications = getSystemService(NotificationManager::class.java)
+        notification = MeterNotification(this)
         renderer = StatusIconRenderer((ICON_DP * resources.displayMetrics.density).roundToInt())
+        power = getSystemService(PowerManager::class.java)
         if (!enterForeground()) return
 
         LiveState.setRunning(true)
-        screenOn = getSystemService(PowerManager::class.java).isInteractive
+        screenOn = power.isInteractive
+        listenToThermalStatus()
         // Registering returns the sticky battery intent and also delivers it to onReceive right away.
         batteryIntent = ContextCompat.registerReceiver(
             this, batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED,
@@ -100,6 +114,9 @@ class MeterService : Service() {
 
     override fun onDestroy() {
         scope.cancel()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            (thermalListener as? PowerManager.OnThermalStatusChangedListener)?.let(power::removeThermalStatusListener)
+        }
         if (receiversRegistered) {
             unregisterReceiver(batteryReceiver)
             unregisterReceiver(screenReceiver)
@@ -117,9 +134,8 @@ class MeterService : Service() {
         } else {
             0
         }
-        val notification = MeterNotification.build(this, MeterNotification.staticIcon(this), null)
         return try {
-            ServiceCompat.startForeground(this, MeterNotification.ID, notification, type)
+            ServiceCompat.startForeground(this, MeterNotification.ID, notification.build(notification.staticIcon, null), type)
             true
         } catch (e: Exception) {
             // ForegroundServiceStartNotAllowedException when the system restarts us in the background
@@ -135,7 +151,7 @@ class MeterService : Service() {
         ticker = scope.launch {
             while (isActive) {
                 update().currentMa?.let(LiveState::appendSample)
-                delay(engine.settings.intervalMs)
+                delay(Pacing.intervalMs(engine.settings.intervalMs, thermalStatus))
             }
         }
     }
@@ -145,29 +161,43 @@ class MeterService : Service() {
         ticker = null
     }
 
+    /** Samsung reports MODERATE and up when the phone gets warm; the timer then slows down. */
+    private fun listenToThermalStatus() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        thermalStatus = power.currentThermalStatus
+        val listener = PowerManager.OnThermalStatusChangedListener { thermalStatus = it }
+        power.addThermalStatusListener(listener)
+        thermalListener = listener
+    }
+
     private fun update(): MeterState {
         val state = engine.sample(batteryIntent)
         LiveState.publish(state)
         if (screenOn) post(state)
-        if (updates++ % LOG_EVERY == 0) log(state)
+        if (BuildConfig.DEBUG && updates++ % LOG_EVERY == 0) log(state)
         return state
     }
 
     private fun post(state: MeterState) {
-        val content = MeterText.content(state, engine.settings.iconMode)
-        if (content == lastPosted) return
-        lastPosted = content
+        // The notification text shows the same held current as the icon.
+        val shown = state.copy(currentMa = gate.iconMa(state.currentMa, state.isPlugged))
+        val content = MeterText.content(shown, engine.settings.iconMode)
+        if (!gate.shouldPost(content, SystemClock.elapsedRealtime())) return
         val icon = Icon.createWithBitmap(renderer.render(content.iconValue, content.iconUnit))
-        notifications.notify(MeterNotification.ID, MeterNotification.build(this, icon, content))
+        notifications.notify(MeterNotification.ID, notification.build(icon, content))
     }
 
     private fun postStatic() {
-        lastPosted = null
+        gate.reset()
         val content = LiveState.state.value?.let { MeterText.content(it, engine.settings.iconMode) }
-        notifications.notify(MeterNotification.ID, MeterNotification.build(this, MeterNotification.staticIcon(this), content))
+        notifications.notify(MeterNotification.ID, notification.build(notification.staticIcon, content))
     }
 
-    /** Raw values for checking unit/sign detection on a new phone: adb logcat -s SarjMetre */
+    private fun Intent.plugged() = getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+
+    private fun Intent.status() = getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+
+    /** Raw values for checking unit/sign detection on a new phone (debug builds): adb logcat -s SarjMetre */
     private fun log(state: MeterState) {
         Log.d(
             TAG,

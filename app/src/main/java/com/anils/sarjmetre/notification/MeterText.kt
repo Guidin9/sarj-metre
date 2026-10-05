@@ -11,6 +11,7 @@ import kotlin.math.roundToInt
 data class MeterContent(
     val iconValue: String,
     val iconUnit: String,
+    val status: String,
     val title: String,
     val today: String,
     val details: String,
@@ -22,7 +23,7 @@ object MeterText {
 
     fun content(state: MeterState, iconMode: IconMode): MeterContent {
         val (value, unit) = iconLines(state, iconMode)
-        return MeterContent(value, unit, title(state), today(state), details(state))
+        return MeterContent(value, unit, status(state), title(state), today(state), details(state))
     }
 
     /** Two short lines for the status bar icon, e.g. "1850" over "mA". The icon keeps a plain "-" to save width. */

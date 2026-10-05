@@ -25,6 +25,9 @@ data class RawBattery(
 class BatteryReader(context: Context) {
     private val appContext = context.applicationContext
     private val batteryManager = appContext.getSystemService(BatteryManager::class.java)
+    private val systemFull = ChargeEstimateCache(SYSTEM_FULL_EVERY_MS) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) batteryManager.computeChargeTimeRemaining().takeIf { it > 0 } else null
+    }
 
     /** [batteryIntent] is the latest ACTION_BATTERY_CHANGED if the caller already holds it. */
     fun read(batteryIntent: Intent? = null): RawBattery {
@@ -41,15 +44,18 @@ class BatteryReader(context: Context) {
         } ?: batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         val voltage = intent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) ?: -1
         val temperature = intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, Int.MIN_VALUE) ?: Int.MIN_VALUE
+        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+            ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+        val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+        val now = SystemClock.elapsedRealtime()
 
         return RawBattery(
-            elapsedMs = SystemClock.elapsedRealtime(),
+            elapsedMs = now,
             currentRaw = property(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW),
             counterRaw = property(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)?.takeIf { it > 0 },
             level = level.coerceIn(0, 100),
-            status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-                ?: BatteryManager.BATTERY_STATUS_UNKNOWN,
-            plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0,
+            status = status,
+            plugged = plugged,
             // A few devices report volts instead of millivolts.
             voltageMv = when {
                 voltage <= 0 -> null
@@ -57,15 +63,15 @@ class BatteryReader(context: Context) {
                 else -> voltage
             },
             temperatureC = if (temperature == Int.MIN_VALUE) null else temperature / 10f,
-            systemFullMs = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                batteryManager.computeChargeTimeRemaining().takeIf { it > 0 }
-            } else {
-                null
-            },
+            systemFullMs = systemFull.get(now, charging = plugged != 0 && status == BatteryManager.BATTERY_STATUS_CHARGING),
         )
     }
 
     /** Unsupported properties come back as Int.MIN_VALUE. */
     private fun property(id: Int): Int? =
         batteryManager.getIntProperty(id).takeIf { it != Int.MIN_VALUE }
+
+    private companion object {
+        const val SYSTEM_FULL_EVERY_MS = 30_000L
+    }
 }

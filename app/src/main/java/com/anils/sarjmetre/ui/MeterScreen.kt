@@ -36,9 +36,8 @@ import kotlin.math.roundToInt
 fun MeterScreen(scrollState: ScrollState, intervalMs: Long, onStart: () -> Unit) {
     val context = LocalContext.current
     val colors = LocalAppleColors.current
-    val state by LiveState.state.collectAsStateWithLifecycle()
+    // The live values are read by the sections below, so a tick only recomposes those, not the page.
     val running by LiveState.running.collectAsStateWithLifecycle()
-    val history by LiveState.history.collectAsStateWithLifecycle()
     var notificationsOn by remember { mutableStateOf(true) }
     var batteryExempt by remember { mutableStateOf(true) }
     // Both can change in system settings while the app is in the background.
@@ -72,20 +71,37 @@ fun MeterScreen(scrollState: ScrollState, intervalMs: Long, onStart: () -> Unit)
             }
         }
 
-        BatteryHero(state, running, Modifier.padding(top = 16.dp))
+        LiveHero(running, Modifier.padding(top = 16.dp))
 
         InsetGroup(header = "Akım") {
-            CurrentChart(history, intervalMs)
+            LiveChart(intervalMs)
         }
 
-        state?.let { reading ->
-            InsetGroup(header = "Ayrıntılar") { Details(reading) }
-            InsetGroup(header = "Bugün", footer = "Sayaçlar her gece yarısı sıfırlanır.") {
-                ValueRow("Şarj edilen", "+${reading.todayChargedMah.roundToInt()} mAh", detail = "%${reading.todayChargedPct}", valueColor = colors.green)
-                RowSeparator()
-                ValueRow("Harcanan", "−${reading.todayDischargedMah.roundToInt()} mAh", detail = "%${reading.todayDischargedPct}", valueColor = colors.orange)
-            }
-        }
+        LiveReadings()
+    }
+}
+
+@Composable
+private fun LiveHero(running: Boolean, modifier: Modifier = Modifier) {
+    val state by LiveState.state.collectAsStateWithLifecycle()
+    BatteryHero(state, running, modifier)
+}
+
+@Composable
+private fun LiveChart(intervalMs: Long) {
+    val history by LiveState.history.collectAsStateWithLifecycle()
+    CurrentChart(history, intervalMs)
+}
+
+@Composable
+private fun LiveReadings() {
+    val colors = LocalAppleColors.current
+    val reading = LiveState.state.collectAsStateWithLifecycle().value ?: return
+    InsetGroup(header = "Ayrıntılar") { Details(reading) }
+    InsetGroup(header = "Bugün", footer = "Sayaçlar her gece yarısı sıfırlanır.") {
+        ValueRow("Şarj edilen", "+${reading.todayChargedMah.roundToInt()} mAh", detail = "%${reading.todayChargedPct}", valueColor = colors.green)
+        RowSeparator()
+        ValueRow("Harcanan", "−${reading.todayDischargedMah.roundToInt()} mAh", detail = "%${reading.todayDischargedPct}", valueColor = colors.orange)
     }
 }
 
