@@ -20,13 +20,16 @@ object NetText {
     fun pausedContent(state: NetState): MeterContent =
         MeterContent("", "", status = "", title = "Ağ hızı", today = today(state), details = "")
 
-    /** Two short lines for the status bar icon, e.g. "1,2" over "MB/s", like Internet Speed Meter. */
-    fun iconLines(speed: Speed?): Pair<String, String> {
-        val bps = speed?.totalBps ?: return "--" to "KB/s"
-        return splitSpeed(bps)
-    }
+    /** Before the first sample, e.g. right after the charger came out. */
+    val measuring = iconLines(null).let { (value, unit) -> MeterContent(value, unit, status = "", title = title(null), today = "", details = "") }
 
-    fun speed(bps: Double): String = splitSpeed(bps).let { (value, unit) -> "$value $unit" }
+    /** Two short lines for the status bar icon, e.g. "1,2" over "MB". Without "/s" the unit stays legible at that size. */
+    fun iconLines(speed: Speed?): Pair<String, String> = speed?.totalBps?.let(::scaled) ?: ("--" to "KB")
+
+    /** A speed as number and unit for text, e.g. "1,2" and "MB/s". */
+    fun speedParts(bps: Double): Pair<String, String> = scaled(bps).let { (value, unit) -> value to "$unit/s" }
+
+    fun speed(bps: Double): String = speedParts(bps).let { (value, unit) -> "$value $unit" }
 
     fun title(speed: Speed?): String =
         if (speed == null) "Ağ hızı ölçülüyor" else "↓ ${speed(speed.downBps)} · ↑ ${speed(speed.upBps)}"
@@ -41,11 +44,12 @@ object NetText {
         else -> decimal(count / GB) + " GB"
     }
 
-    private fun splitSpeed(bps: Double): Pair<String, String> {
+    /** The number and the byte unit it counts in, per second. */
+    private fun scaled(bps: Double): Pair<String, String> {
         val kb = bps / KB
-        if (kb < 999.5) return kb.roundToInt().toString() to "KB/s"
+        if (kb < 999.5) return kb.roundToInt().toString() to "KB"
         val mb = bps / MB
-        return (if (mb < 9.95) decimal(mb) else mb.roundToInt().toString()) to "MB/s"
+        return (if (mb < 9.95) decimal(mb) else mb.roundToInt().toString()) to "MB"
     }
 
     private fun decimal(value: Double): String = String.format(turkish, "%.1f", value)

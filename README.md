@@ -4,13 +4,13 @@ Telefonun bataryasına anlık olarak giren ya da çıkan akımı (mA) ve ağ hı
 
 ## Özellikler
 
-- Status bar'da canlı akım ikonu (yenileme aralığı ayarlanabilir): şarjda `1850 mA`, kullanımda `-420 mA`. İstenirse watt olarak da gösterilebilir.
+- Status bar'da canlı akım ikonu (yenileme aralığı ayarlanabilir): şarjda `1850 mA`, kullanımda `-420 mA`. İstenirse watt olarak da gösterilebilir. Varsayılan olarak yalnızca şarj takılıyken görünür; Ayarlar'dan her zaman gösterilebilir.
 - Bildirimde güç (W), voltaj, sıcaklık ve kalan süre (tam dolmasına ya da bitmesine).
 - Günün toplamları: bugün kaç mAh / yüzde şarj edildi, kaç mAh / yüzde harcandı.
 - Akımın birimi (µA/mA) ve yönü cihaza göre otomatik tespit edilir.
 - Samsung'da kalan süre, kilit ekranındaki tahminle aynıdır. Pil koruma (%80/85/…) sınırı ayarlanabilir.
 - Ekran kapalıyken güncelleme durur; telefon açılınca gösterge kendiliğinden başlar.
-- Status bar'da ikinci ikon olarak ağ hızı (indirme + yükleme toplamı). Bildirimde indirme ve yükleme ayrı ayrı, bugünkü mobil ve Wi-Fi kullanımıyla birlikte.
+- Status bar'da ikinci ikon olarak ağ hızı (indirme + yükleme toplamı, saniyede `356 KB` / `1,2 MB`). Şarj takılı değilken status bar'da yalnızca bu ikon kalır. Bildirimde indirme ve yükleme ayrı ayrı, bugünkü mobil ve Wi-Fi kullanımıyla birlikte.
 - Ağ ekranı: bugün saat saat, son 7 gün ve bu ay gün gün mobil / Wi-Fi kullanımı. Veri sistemin kendi kaydından gelir (Samsung'un veri kullanımı ekranı da bunu okur), bu yüzden kurulumdan önceki günler de görünür ve VPN trafiği iki kez sayılmaz. Bunun için bir kez **Kullanım verisi erişimi** izni gerekir.
 - Pil dostu: ikon yalnızca akım en az 10 mA değişince yeniden çizilir; telefon ısınınca (termal durum "orta" ve üstü) yenileme 5 saniyeye yavaşlar.
 
@@ -62,5 +62,5 @@ Kotlin, Jetpack Compose, minSdk 26. Ön plan servisi (`specialUse`), `BatteryMan
 ## Üçüncü taraf
 
 - Cam efekti: [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) (`backdrop`, `shapes`), Apache License 2.0. `ui/glass` altındaki sekme çubuğu, anahtar ve etkileşim yardımcıları bu projenin örnek uygulamasından uyarlandı (`third_party/AndroidLiquidGlass/LICENSE`).
-- Yazı tipi: Inter, SIL Open Font License (`third_party/fonts/OFL.txt`). Apple'ın SF Pro fontu yalnızca Apple platformları için lisanslı olduğu için kullanılmadı.
+- Yazı tipleri: Inter, SIL Open Font License (`third_party/fonts/OFL.txt`). Apple'ın SF Pro fontu yalnızca Apple platformları için lisanslı olduğu için kullanılmadı. Status bar ikonlarında Barlow Condensed (yalnızca gereken karakterler), SIL Open Font License (`third_party/fonts/Barlow-OFL.txt`).
 - İkonlar: Material Symbols Rounded, Apache License 2.0.

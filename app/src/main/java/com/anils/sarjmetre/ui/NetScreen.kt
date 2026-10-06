@@ -122,7 +122,7 @@ private fun SpeedHero(netEnabled: Boolean, modifier: Modifier = Modifier) {
 @Composable
 private fun SpeedColumn(title: String, arrow: String, bps: Double?, modifier: Modifier = Modifier) {
     val colors = LocalAppleColors.current
-    val (value, unit) = bps?.let { NetText.iconLines(Speed(it, 0.0)) } ?: ("–" to "")
+    val (value, unit) = bps?.let(NetText::speedParts) ?: ("–" to "")
     Column(
         modifier.clearAndSetSemantics { contentDescription = "$title ${if (bps == null) "yok" else "$value $unit"}" },
         horizontalAlignment = Alignment.CenterHorizontally,

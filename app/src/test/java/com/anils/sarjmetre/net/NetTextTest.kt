@@ -6,13 +6,20 @@ import org.junit.Test
 class NetTextTest {
     @Test
     fun iconSwitchesFromKilobytesToMegabytes() {
-        assertEquals("--" to "KB/s", NetText.iconLines(null))
-        assertEquals("0" to "KB/s", NetText.iconLines(Speed(0.0, 0.0)))
-        assertEquals("120" to "KB/s", NetText.iconLines(Speed(100 * 1024.0, 20 * 1024.0)))
-        assertEquals("999" to "KB/s", NetText.iconLines(Speed(999 * 1024.0, 0.0)))
-        assertEquals("1,0" to "MB/s", NetText.iconLines(Speed(999.6 * 1024, 0.0)))
-        assertEquals("1,2" to "MB/s", NetText.iconLines(Speed(1.2 * 1024 * 1024, 0.0)))
-        assertEquals("25" to "MB/s", NetText.iconLines(Speed(25.4 * 1024 * 1024, 0.0)))
+        assertEquals("--" to "KB", NetText.iconLines(null))
+        assertEquals("0" to "KB", NetText.iconLines(Speed(0.0, 0.0)))
+        assertEquals("120" to "KB", NetText.iconLines(Speed(100 * 1024.0, 20 * 1024.0)))
+        assertEquals("999" to "KB", NetText.iconLines(Speed(999 * 1024.0, 0.0)))
+        assertEquals("1,0" to "MB", NetText.iconLines(Speed(999.6 * 1024, 0.0)))
+        assertEquals("1,2" to "MB", NetText.iconLines(Speed(1.2 * 1024 * 1024, 0.0)))
+        assertEquals("25" to "MB", NetText.iconLines(Speed(25.4 * 1024 * 1024, 0.0)))
+    }
+
+    @Test
+    fun textKeepsPerSecond() {
+        assertEquals("1,2" to "MB/s", NetText.speedParts(1.2 * 1024 * 1024))
+        assertEquals("80" to "KB/s", NetText.speedParts(80 * 1024.0))
+        assertEquals("--" to "KB", NetText.measuring.let { it.iconValue to it.iconUnit })
     }
 
     @Test

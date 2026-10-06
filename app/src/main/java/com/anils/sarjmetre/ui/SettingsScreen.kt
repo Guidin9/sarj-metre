@@ -58,6 +58,7 @@ fun SettingsScreen(
     var enabled by remember { mutableStateOf(settings.serviceEnabled) }
     // Picks up a stop from the notification's button.
     LaunchedEffect(running) { enabled = settings.serviceEnabled }
+    var onlyWhilePlugged by remember { mutableStateOf(settings.batteryOnlyWhilePlugged) }
     var netEnabled by remember { mutableStateOf(settings.netMeterEnabled) }
     var iconMode by remember { mutableStateOf(settings.iconMode) }
     var interval by remember { mutableLongStateOf(settings.intervalMs) }
@@ -95,6 +96,24 @@ fun SettingsScreen(
                         enabled = on
                         settings.serviceEnabled = on
                         if (on) onStart() else onStop()
+                    },
+                    onColor = colors.green,
+                    offColor = colors.fill,
+                    reduceTransparency = reduceTransparency,
+                )
+            }
+            RowSeparator()
+            ListRow {
+                Column(Modifier.weight(1f)) {
+                    Text("Sadece şarjdayken", style = AppleType.body, color = colors.label)
+                    Text("Şarj takılı değilken mA ikonu gizlenir", style = AppleType.footnote, color = colors.secondaryLabel)
+                }
+                Spacer(Modifier.width(12.dp))
+                GlassToggle(
+                    checked = { onlyWhilePlugged },
+                    onCheckedChange = { on ->
+                        onlyWhilePlugged = on
+                        settings.batteryOnlyWhilePlugged = on
                     },
                     onColor = colors.green,
                     offColor = colors.fill,

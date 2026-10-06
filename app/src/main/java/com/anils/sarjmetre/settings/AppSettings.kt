@@ -18,6 +18,11 @@ class AppSettings(context: Context) : DetectionStore {
         get() = prefs.getBoolean("service_enabled", true)
         set(value) = prefs.edit { putBoolean("service_enabled", value) }
 
+    /** The current's status bar icon only while the charger is plugged in. */
+    var batteryOnlyWhilePlugged: Boolean
+        get() = prefs.getBoolean("battery_only_while_plugged", true)
+        set(value) = prefs.edit { putBoolean("battery_only_while_plugged", value) }
+
     /** Second status bar icon with the network speed. */
     var netMeterEnabled: Boolean
         get() = prefs.getBoolean("net_meter_enabled", true)

@@ -10,11 +10,32 @@ import android.graphics.drawable.Icon
 import com.anils.sarjmetre.R
 import com.anils.sarjmetre.ui.MainActivity
 
-/** The network speed notification: a second status bar icon next to the current one, built the same reusing way. */
+/**
+ * The network speed notification, built the same reusing way as the current one. Next to the current
+ * meter it is a second status bar icon of its own; off the charger it takes the meter's foreground place.
+ */
 class NetNotification(context: Context) {
     val staticIcon: Icon = Icon.createWithResource(context, R.drawable.ic_stat_net)
-    private val builder = Notification.Builder(context, CHANNEL_ID)
-        .setColor(context.getColor(R.color.brand))
+    private val plainBuilder = newBuilder(context).setColor(context.getColor(R.color.brand))
+
+    // In the foreground place it takes the meter's colorized card and stop button too: the colorized
+    // foreground notification is what Android 16 never bundles (see MeterNotification). It has a builder
+    // of its own because a builder keeps the actions of an earlier build even after they are removed.
+    private val foregroundBuilder = newBuilder(context)
+        .setColor(context.getColor(R.color.notification_card))
+        .setColorized(true)
+        .addAction(MeterNotification.stopAction(context))
+
+    // Fresh time on every post keeps it near the top of the shade, like the current meter.
+    fun build(icon: Icon, content: MeterContent, foreground: Boolean): Notification =
+        (if (foreground) foregroundBuilder else plainBuilder)
+            .setWhen(System.currentTimeMillis())
+            .setSmallIcon(icon)
+            .setContentTitle(content.title)
+            .setContentText(content.today)
+            .build()
+
+    private fun newBuilder(context: Context) = Notification.Builder(context, CHANNEL_ID)
         .setOngoing(true)
         .setOnlyAlertOnce(true)
         .setShowWhen(false)
@@ -29,10 +50,6 @@ class NetNotification(context: Context) {
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             ),
         )
-
-    // Fresh time on every post keeps it near the top of the shade, like the current meter.
-    fun build(icon: Icon, content: MeterContent): Notification =
-        builder.setWhen(System.currentTimeMillis()).setSmallIcon(icon).setContentTitle(content.title).setContentText(content.today).build()
 
     companion object {
         const val ID = 2
