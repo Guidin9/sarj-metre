@@ -14,6 +14,12 @@ Telefonun bataryasına anlık olarak giren ya da çıkan akımı (mA) ve ağ hı
 - Ağ ekranı: bugün saat saat, son 7 gün ve bu ay gün gün mobil / Wi-Fi kullanımı. Veri sistemin kendi kaydından gelir (Samsung'un veri kullanımı ekranı da bunu okur), bu yüzden kurulumdan önceki günler de görünür ve VPN trafiği iki kez sayılmaz. Bunun için bir kez **Kullanım verisi erişimi** izni gerekir.
 - Pil dostu: ikon yalnızca akım en az 10 mA değişince yeniden çizilir; telefon ısınınca (termal durum "orta" ve üstü) yenileme 5 saniyeye yavaşlar.
 
+## Kurulum
+
+[Releases](https://github.com/Guidin9/sarj-metre/releases/latest) sayfasından son sürümün APK'sını (`LiveMeter-<sürüm>.apk`) indirip telefonda aç. Android, bilinmeyen kaynaklardan kurulum için bir kez izin ister. Android 8.0 ve üstü gerekir.
+
+Telefonda: bildirim iznini ver, uygulamanın pil kullanımını **Kısıtlanmamış** yap. Samsung'da ayrıca Pil → Arka plan kullanım sınırları → **Hiç uyumayan uygulamalar** listesine ekle.
+
 ## Derleme
 
 Gereken: JDK 17+ (Android Studio'nun JBR'ı yeterli) ve Android SDK (platform 37).
@@ -41,8 +47,6 @@ Günlük kullanım için release sürümünü kur. R8 ile küçültülmüş ve o
 3. Debug sürümü kuruluysa imzalar farklı olduğu için önce `adb uninstall com.anils.sarjmetre` gerekir.
 
 `keystore.properties` yoksa release APK imzasız çıkar.
-
-Telefonda: bildirim iznini ver, uygulamanın pil kullanımını **Kısıtlanmamış** yap. Samsung'da ayrıca Pil → Arka plan kullanım sınırları → **Hiç uyumayan uygulamalar** listesine ekle.
 
 ## Arayüz
 
