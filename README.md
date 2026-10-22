@@ -68,3 +68,7 @@ Kotlin, Jetpack Compose, minSdk 26. Ön plan servisi (`specialUse`), `BatteryMan
 - Cam efekti: [Kyant0/AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass) (`backdrop`, `shapes`), Apache License 2.0. `ui/glass` altındaki sekme çubuğu, anahtar ve etkileşim yardımcıları bu projenin örnek uygulamasından uyarlandı (`third_party/AndroidLiquidGlass/LICENSE`).
 - Yazı tipleri: Inter, SIL Open Font License (`third_party/fonts/OFL.txt`). Apple'ın SF Pro fontu yalnızca Apple platformları için lisanslı olduğu için kullanılmadı. Status bar ikonlarında Barlow Condensed (yalnızca gereken karakterler), SIL Open Font License (`third_party/fonts/Barlow-OFL.txt`).
 - İkonlar: Material Symbols Rounded, Apache License 2.0.
+
+## Lisans
+
+Apache License 2.0 ([`LICENSE`](LICENSE)). Üçüncü taraf bileşenler yukarıda belirtilen kendi lisanslarıyla gelir.
