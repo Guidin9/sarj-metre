@@ -71,4 +71,4 @@ Kotlin, Jetpack Compose, minSdk 26. Ön plan servisi (`specialUse`), `BatteryMan
 
 ## Lisans
 
-Apache License 2.0 ([`LICENSE`](LICENSE)). Üçüncü taraf bileşenler yukarıda belirtilen kendi lisanslarıyla gelir.
+[GPL-3.0-or-later](LICENSE) © 2026 Mert Demirdöven. Değiştirilmiş sürümler aynı lisansla ve kaynak koduyla yayınlanmalı, bu telif notu korunmalı. Üçüncü taraf bileşenler yukarıda belirtilen kendi lisanslarıyla gelir.
